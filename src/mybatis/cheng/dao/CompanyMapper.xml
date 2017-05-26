@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--1.理论上，我们可以任意定义namespace的命名，只是唯一定义一个唯一的mapper，相当于mapper的唯一id,
+用来识别，但是要是与接口绑定我们一定要引用接口的全类名-->
+ <!--<mapper namespace="mybatis.cheng.beans.chengyaneng">-->
+<!--测试与接口的绑定，用接口的全类名 -->
+<mapper namespace="mybatis.cheng.dao.CompanyMapper" >
+<!-- id ：定义唯一个自定义map值，type是相应的类的全类名
+这个功能是没有开启驼峰命名规则的setting，或者是无规则的命名数据库映射-->
+<resultMap id="mycomany" type="mybatis.cheng.beans.Company" >
+    <!--指定主键列的封装规则
+		id定义主键会底层有优化；
+		column：指定哪一列
+		property：指定对应的javaBean属性
+		  -->
+    <id column="id" property="id"></id>
+    <result column="name" property="name"></result>
+    <result column="price" property="price"></result>
+<!--不指定的列不会封装 -->
+</resultMap>
+    <!--这个是关联查询，是关联查询-->
+    <resultMap id="mycomanyandcar" type="mybatis.cheng.beans.Company" >
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="price" property="price"></result>
+        <result column="car_id" property="car.id"></result>
+        <result column="car_name" property="car.name"></result>
+        <result column="car_price" property="car.price"></result>
+        <result column="car_companyid" property="car.companyid"></result>
+
+    </resultMap>
+    <!--返回单个第二种方法 -->
+    <resultMap id="mycomanyandcar2" type="mybatis.cheng.beans.Company" >
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="price" property="price"></result>
+        <!--property指定beans中的那个属性是一个映射的对象
+        javaType：是这个对象的全类名
+        -->
+        <association property="car" javaType="mybatis.cheng.beans.Car">
+            <id column="car_id" property="id"></id>
+            <result column="car_name" property="name"></result>
+            <result column="car_price" property="price"></result>
+            <result column="car_companyid" property="companyid"></result>
+        </association>
+
+    </resultMap>
+<!--13.这个是返回的是多个子类 list-->
+    <resultMap id="mycomanyandcarList" type="mybatis.cheng.beans.Company" >
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="price" property="price"></result>
+         <!--当返回的是个集合对象的时候用
+         collection 是对象中包含List使用的。
+         ofType:指定集合里面元素的类型，一般我们用全类名。
+         -->
+        <collection property="listcar" ofType="mybatis.cheng.beans.Car">
+        <id  column="car_id" property="id"></id>
+        <result column="car_name" property="name"></result>
+        <result column="car_price" property="price"></result>
+        <result column="car_companyid" property="companyid"></result>
+        </collection>
+    </resultMap>
+    <!--id：是确定 Mapper.xml唯一的方法的名字但是为了与接口绑定，我们必须与接口中的方法名字一致，这样才能与接口中方法想绑定
+         TypeRetrun:返回类型，要是返回的是对象，我们一般用对象的全类名。很少用别名
+        databaseId:是定义的数据库别名，一般定义完数据库的别名后，程序会根据数据库链接信息，自动优先选有databaseId定义的程序 -->
+
+    <select id="getCompanyByid" resultType="mybatis.cheng.beans.Company" databaseId="mysql"  >
+
+    select * from company where id=#{id};
+
+    </select>
+
+    <!--测试绑定接口的方法 -->
+    <select id="getCompByID" resultType="mybatis.cheng.beans.Company" databaseId="mysql"   >
+
+        select * from company where id=#{id};
+
+    </select>
+    <!-- 当传入的是对象的时候，可以直接把对象的属性的值取出来映射给#{name},#{price}
+       parameterType 是传入的参数类型一般不用写
+       获取插入后的long类型
+       -->
+
+       <insert id="insertCompany" parameterType="mybatis.cheng.beans.Company" databaseId="mysql" useGeneratedKeys="true" keyProperty="id">
+
+           insert into company (name,price) values (#{name},#{price});
+
+       </insert>
+
+       <!-- 当传入的是对象的时候，可以直接把对象的属性的值取出来映射给#{name},#{price}
+       parameterType 是传入的参数类型一般不用写
+       useGeneratedKeys:开启获取数据库自增的id
+       keyProperty：复制给对象中的属性
+       -->
+    <insert id="insertCompayAutoID" parameterType="mybatis.cheng.beans.Company" databaseId="mysql" useGeneratedKeys="true" keyProperty="id">
+
+        insert into company (name,price) values (#{name},#{price});
+
+    </insert>
+<!--更新返回boolean-->
+    <update id="updateCompany" databaseId="mysql" useGeneratedKeys="true" keyProperty="id">
+        update company set name=#{name},price=#{price} where id=#{id}
+
+    </update>
+<delete id="delectCompany" databaseId="mysql" >
+    DELETE  from company where id="#{id}"
+
+</delete>
+<!--@param 类型的映射，通过@param把多个参数封装的map类型key的值。 -->
+<insert id="insertCompanyParam" databaseId="mysql" >
+
+    insert into company (name,price) VALUES (#{name},#{price})
+
+</insert>
+
+    <!--直接自己封装成map，然后map类型的key 值与#{name}一样。可以直接映射。-->
+    <insert id="insertCompanyMap" databaseId="mysql" >
+
+        insert into company (name,price) VALUES (#{name},#{price})
+
+    </insert>
+
+    <!--8.查询list-->
+    <select id="selectCompanyList" databaseId="mysql" resultType="mybatis.cheng.beans.Company">
+
+       select * from company where name like #{name}
+
+    </select>
+
+    <!--9.返回一个map-->
+    <select id="selectCompanyMap" databaseId="mysql" resultType="map">
+
+        select * from company where id=#{id};
+
+    </select>
+    <!--10.返回一个 company的map-->
+    <select id="selectMapCompany" databaseId="mysql" resultType="map">
+
+        select * from company where name LIKE #{name}
+
+    </select>
+
+    <!--11.返回一个 自己定义的的map,resultMap,与resultType是互斥的只能有一个返回类型存在，不然会报错。-->
+    <select id="selectMyMapCompany" databaseId="mysql" resultMap="mycomany">
+
+        select * from company where id=#{id}
+
+    </select>
+    <!--12.关联查询，一次查询相关联的两张表，返回单个表-->
+    <select id="selectMyMapCompanyAndCar" databaseId="mysql" resultMap="mycomanyandcar">
+
+        select  p.id id,p.name name ,p.price price,a.id as car_id,a.name car_name,a.price car_price ,a.companyid as car_companyid from company  p,car  a
+        where p.id=a.companyid and p.id=#{id}
+
+    </select>
+    <!--12.关联查询，一次查询相关联的两张表，返回单个表第二个方法-->
+    <select id="selectMyMapCompanyAndCar2" databaseId="mysql" resultMap="mycomanyandcar">
+
+        select  p.id id,p.name name ,p.price price,a.id as car_id,a.name car_name,a.price car_price ,a.companyid as car_companyid from company  p,car  a
+        where p.id=a.companyid and p.id=#{id}
+
+    </select>
+    <!--13.关联查询，一次查询相关联的两张表，返回多个子级表-->
+    <select id="selectMyMapCompanyAndCarList" databaseId="mysql" resultMap="mycomanyandcarList">
+
+        select  p.id id,p.name name ,p.price price,a.id as car_id,a.name car_name,a.price car_price ,a.companyid as car_companyid from company  p,car  a
+        where p.id=a.companyid and p.id=#{id}
+
+    </select>
+</mapper>
